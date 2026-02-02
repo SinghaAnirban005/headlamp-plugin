@@ -41,6 +41,9 @@ export default function GenericGadgetRenderer({
   );
   const gadgetRef = useRef<any>(null);
   const gadgetRunningStatusRef = useRef(gadgetRunningStatus);
+  const attachTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const attachStopRef = useRef<{ stop?: () => void } | null>(null);
+  const mountedRef = useRef(true);
   const decodedImageName = decodeURIComponent(imageName || '');
   function gadgetStartStopHandler() {
     if (!ig) return;
@@ -55,17 +58,31 @@ export default function GenericGadgetRenderer({
       prepareGadgetInfo
     );
     if (gadgetInstance) {
-      setTimeout(
-        () =>
-          ig.attachGadgetInstance(
-            {
-              id: gadgetInstance.id,
-              version: gadgetInstance.gadgetConfig.version,
-            },
-            callbacks
-          ),
-        2000
-      );
+      // Clear any pending attachment timeout
+      if (attachTimeoutRef.current) {
+        clearTimeout(attachTimeoutRef.current);
+        attachTimeoutRef.current = null;
+      }
+      // Stop any existing attachment
+      if (attachStopRef.current?.stop) {
+        attachStopRef.current.stop();
+        attachStopRef.current = null;
+      }
+
+      attachTimeoutRef.current = setTimeout(() => {
+        // Guard: ensure component is still mounted and ig is still valid
+        if (!mountedRef.current || !ig) {
+          return;
+        }
+        // Note: attachGadgetInstance returns a stop handle but the interface types it as void
+        attachStopRef.current = ig.attachGadgetInstance(
+          {
+            id: gadgetInstance.id,
+            version: gadgetInstance.gadgetConfig.version,
+          },
+          callbacks
+        ) as unknown as { stop?: () => void };
+      }, 2000);
     } else {
       gadgetRef.current = ig.runGadget(
         {
@@ -98,8 +115,21 @@ export default function GenericGadgetRenderer({
 
   useEffect(() => {
     gadgetRunningStatusRef.current = gadgetRunningStatus;
-    if (!gadgetRunningStatus && !gadgetInstance && gadgetRef.current?.stop) {
-      gadgetRef.current?.stop();
+    if (!gadgetRunningStatus && !gadgetInstance) {
+      // Stop runGadget
+      if (gadgetRef.current?.stop) {
+        gadgetRef.current.stop();
+      }
+      // Clear pending attachment timeout
+      if (attachTimeoutRef.current) {
+        clearTimeout(attachTimeoutRef.current);
+        attachTimeoutRef.current = null;
+      }
+      // Stop attachment if active
+      if (attachStopRef.current?.stop) {
+        attachStopRef.current.stop();
+        attachStopRef.current = null;
+      }
       return;
     }
     if (gadgetRunningStatus && podsSelected.length === podStreamsConnected) {
@@ -108,7 +138,20 @@ export default function GenericGadgetRenderer({
   }, [gadgetRunningStatus, podStreamsConnected, podsSelected]);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
+      // Clear pending attachment timeout
+      if (attachTimeoutRef.current) {
+        clearTimeout(attachTimeoutRef.current);
+        attachTimeoutRef.current = null;
+      }
+      // Stop attachment if active
+      if (attachStopRef.current?.stop) {
+        attachStopRef.current.stop();
+        attachStopRef.current = null;
+      }
+      // Stop runGadget if active
       gadgetRef.current?.stop();
     };
   }, []);
