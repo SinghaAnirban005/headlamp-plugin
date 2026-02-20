@@ -1,4 +1,4 @@
-import K8s from '@kinvolk/headlamp-plugin/lib/K8s';
+import K8s from '@kinvolk/headlamp-plugin/lib/k8s';
 import { Box, TextField } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -28,20 +28,19 @@ const K8sFilterComponent: React.FC<K8sFilterProps> = ({ param, config, namespace
   const kind = (param.valueHint || '').replace(/^k8s:/, '');
   const [inputValue, setInputValue] = useState('');
   const [rawValue, setRawValue] = useState('');
-  const [namespaces] = K8s.ResourceClasses.Namespace.useList() as [any[]];
-  const [pods] = K8s.ResourceClasses.Pod.useList() as [any[]];
+  const [namespaces] = K8s.ResourceClasses.Namespace.useList();
+  const [pods] = K8s.ResourceClasses.Pod.useList();
 
   useEffect(() => {
+    console.log(kind, namespace, pod, config.get());
     if (kind === 'namespace') {
-        setRawValue(namespace || '')
+      setRawValue(namespace || '');
+    } else if (kind === 'pod') {
+      setRawValue(pod || '');
+    } else {
+      setRawValue(config.get() || '');
     }
-    else if (kind === 'pod') {
-        setRawValue(pod || '')
-    }
-    else {
-        setRawValue(config.get() || '');
-    }
-  }, [namespace, pod]);
+  }, []);
 
   const options = useMemo(() => {
     const unique = new Set<string>();
@@ -111,7 +110,7 @@ const K8sFilterComponent: React.FC<K8sFilterProps> = ({ param, config, namespace
     } else {
       config.set(finalValues.join(','));
     }
-
+    setRawValue(finalValues.join(','));
     // Reset input so further selections are not negated unless user types "!" again
     setInputValue('');
   };
