@@ -93,6 +93,7 @@ function GadgetRenderer({
   const [enableHistoricalData, setEnableHistoricalData] = useState(true);
   const [update, setUpdate] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   // Effect for handling pod stream connections
   useEffect(() => {
     if (podStreamsConnected > podsSelected.length) {

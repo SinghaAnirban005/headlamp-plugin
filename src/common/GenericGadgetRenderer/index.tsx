@@ -45,6 +45,8 @@ export default function GenericGadgetRenderer({
   const attachStopRef = useRef<{ stop?: () => void } | null>(null);
   const mountedRef = useRef(true);
   const decodedImageName = decodeURIComponent(imageName || '');
+
+  console.log('decoeded image name ', decodedImageName)
   function gadgetStartStopHandler() {
     if (!ig) return;
     setLoading(true);

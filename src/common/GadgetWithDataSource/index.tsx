@@ -173,7 +173,7 @@ export function GadgetWithDataSource(props: GadgetWithDataSourceProps) {
       {areAllPodStreamsConnected && (
         <Box mt={2}>
           <Box m={2}>
-            <Grid container justifyContent="space-between" spacing={2}>
+            <Grid container justify-content="space-between" spacing={2}>
               <Grid item>Status: {gadgetRunningStatus ? 'Running' : 'Stopped'}</Grid>
               <Grid item>
                 {gadgetInstance ? (
