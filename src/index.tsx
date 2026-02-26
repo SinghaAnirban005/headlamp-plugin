@@ -14,6 +14,7 @@ import { DetailsViewSectionProps } from '@kinvolk/headlamp-plugin/lib/components
 import K8s from '@kinvolk/headlamp-plugin/lib/K8s';
 import { Box, Typography } from '@mui/material';
 import { useState } from 'react';
+import BpfStatsView from './bpfstats/BpfStatsView';
 import { IGNotFound } from './common/NotFound';
 import { GadgetCreation } from './gadgets/gadgetcreationinresource';
 import { GadgetDetails } from './gadgets/gadgetDetails';
@@ -49,6 +50,22 @@ registerRoute({
   exact: true,
   sidebar: 'gadgets',
   name: 'gadgets',
+});
+
+registerSidebarEntry({
+  name: 'bpfstats',
+  icon: 'mdi:chip',
+  url: '/bpfstats',
+  parent: 'gadgets',
+  label: 'eBPF Programs',
+});
+
+registerRoute({
+  path: '/bpfstats',
+  component: BpfStatsView,
+  exact: true,
+  sidebar: 'bpfstats',
+  name: 'bpfstats',
 });
 
 registerDetailsViewSection(({ resource }: DetailsViewSectionProps) => {
