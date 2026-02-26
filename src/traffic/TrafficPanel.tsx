@@ -105,23 +105,13 @@ function parseProcessedRow(row: Record<string, any>): TrafficEvent | null {
     const dstObj = row['dst'] ?? {};
     const k8sRoot = row['k8s'] ?? {};
 
-    // IPs are never serialized by this IG WASM version — addr fields have flags:12
-    // and the WASM does not emit them. We work purely from k8s identity.
-    //
-    // Source identity: root k8s is ALWAYS the source process (IG design invariant).
-    // src.k8s would be the enriched endpoint identity but is always empty here.
     const srcPod: string = k8sRoot.podName ?? k8sRoot.pod ?? '';
     const srcNamespace: string = k8sRoot.namespace ?? '';
 
-    // Destination identity: dst.k8s is populated by IG when it can resolve
-    // the destination. dst.k8s.kind tells us "Pod" vs "Service".
-    // kubectl gadget run shows: s/frontend/nginx:80 → kind="Service", name="nginx"
-    //                           p/frontend/nginx-abc:80 → kind="Pod", name="nginx-abc"
     const dstK8s = (dstObj.k8s && Object.keys(dstObj.k8s).length > 0) ? dstObj.k8s : null;
     const dstKind: string = dstK8s?.kind ?? '';
     const dstName: string = dstK8s?.name ?? dstK8s?.podName ?? '';
     const dstNamespace: string = dstK8s?.namespace ?? '';
-    // Separate pod vs service identity
     const dstPod: string = dstKind === 'Pod' || (!dstKind && dstName) ? dstName : '';
     const dstSvc: string = dstKind === 'Service' ? dstName : '';
 
@@ -133,9 +123,8 @@ function parseProcessedRow(row: Record<string, any>): TrafficEvent | null {
     const hasError = row['error'] && row['error'] !== '' && row['error'] !== 'Success';
     const errorMsg: string = row['error'] ?? '';
 
-    // isUnknownDst: no k8s identity resolved for destination (not a pod or service)
     const isUnknownDst = !dstPod && !dstSvc && type !== 'close';
-    const isExternal = false; // IPs not available in this IG WASM version
+    const isExternal = false;
 
     const dstLabel = dstSvc
       ? `${dstNamespace}/${dstSvc}`
@@ -166,8 +155,6 @@ function parseProcessedRow(row: Record<string, any>): TrafficEvent | null {
     return null;
   }
 }
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function Center({ children }: { children: React.ReactNode }) {
   return (

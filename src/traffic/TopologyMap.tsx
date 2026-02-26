@@ -96,10 +96,8 @@ export function buildGraph(
   const nodeMap = new Map<string, GraphNode>();
   const edgeMap = new Map<string, GraphEdge>();
 
-  // Only connect/accept — close carries no identity information
   let relevant = events.filter(e => e.type === 'connect' || e.type === 'accept');
 
-  // When namespace filter active, only show edges where src OR dst is in that namespace
   if (nsFilter) {
     relevant = relevant.filter(e =>
       e.srcNamespace === nsFilter ||
@@ -152,14 +150,12 @@ export function buildGraph(
   };
 }
 
-// ─── Palette ──────────────────────────────────────────────────────────────────
-
 const NS_PALETTE = [
   '#6366f1', '#22c55e', '#06b6d4', '#f59e0b',
   '#8b5cf6', '#10b981', '#3b82f6', '#ec4899',
   '#14b8a6', '#f97316',
 ];
-// Ensure kube-system is always a consistent green
+
 const FIXED_NS_COLORS: Record<string, string> = {
   'kube-system': '#22c55e',
   'frontend':    '#6366f1',
@@ -172,7 +168,6 @@ let nsColorIdx = 0;
 function nsColor(namespace: string | undefined): string {
   if (!namespace) return '#6b7280';
   if (!nsColorCache.has(namespace)) {
-    // Skip indices already used by fixed colors
     while (Object.values(FIXED_NS_COLORS).includes(NS_PALETTE[nsColorIdx % NS_PALETTE.length])) nsColorIdx++;
     nsColorCache.set(namespace, NS_PALETTE[nsColorIdx % NS_PALETTE.length]);
     nsColorIdx++;
@@ -183,7 +178,7 @@ function nsColor(namespace: string | undefined): string {
 function nodeColor(node: GraphNode): string {
   if (node.kind === 'external') return '#ef4444';
   if (node.kind === 'unknown') return '#f59e0b';
-  if (node.kind === 'service') return '#06b6d4'; // cyan — distinct from namespace pod colors
+  if (node.kind === 'service') return '#06b6d4';
   return nsColor(node.namespace);
 }
 
@@ -193,9 +188,6 @@ function edgeColor(edge: GraphEdge): string {
   return '#94a3b8';
 }
 
-// ─── Force simulation ─────────────────────────────────────────────────────────
-
-// Tuned for 5-20 nodes: more repulsion, longer springs, faster damping
 const REPULSION = 8000;
 const SPRING_LEN = 180;
 const SPRING_K   = 0.03;
@@ -240,8 +232,6 @@ function runSimulationStep(nodes: GraphNode[], edges: GraphEdge[], cx: number, c
   }
 }
 
-// ─── Node SVG element ────────────────────────────────────────────────────────
-
 const NODE_R = 22;
 const LABEL_CHARS = 15;
 
@@ -268,7 +258,6 @@ function NodeEl({ node, selected, onClick, onDragStart }: {
     >
       <title>{`${node.kind}: ${node.sublabel ? node.sublabel + '/' : ''}${node.label}`}</title>
 
-      {/* Outer glow ring — only for security-relevant or selected nodes */}
       {(selected || isUnknown || isExternal) && (
         <circle r={NODE_R + 6} fill="none" stroke={color}
           strokeWidth={selected ? 2.5 : 1} opacity={selected ? 0.5 : 0.3}
@@ -304,8 +293,6 @@ function NodeEl({ node, selected, onClick, onDragStart }: {
     </g>
   );
 }
-
-// ─── Edge SVG element ─────────────────────────────────────────────────────────
 
 function EdgeEl({ edge, nodes, selected }: {
   edge: GraphEdge; nodes: Map<string, GraphNode>; selected: boolean;
@@ -350,8 +337,6 @@ function EdgeEl({ edge, nodes, selected }: {
     </g>
   );
 }
-
-// ─── Legend ───────────────────────────────────────────────────────────────────
 
 function Legend({ namespaces }: { namespaces: string[] }) {
   return (
@@ -470,11 +455,9 @@ function NodeDetail({ node, edges, nodeMap, onClose }: {
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
-
 interface TopologyMapProps {
   events: TrafficEvent[];
-  nsFilter?: string; // namespace to scope to (empty = show all non-system)
+  nsFilter?: string;
 }
 
 export default function TopologyMap({ events, nsFilter }: TopologyMapProps) {
