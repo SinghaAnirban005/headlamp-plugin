@@ -23,18 +23,14 @@ import {
   Stepper,
   Tab,
   Tabs,
-  TextField,
   Typography,
 } from '@mui/material';
-import { useSnackbar } from 'notistack';
 import { useEffect, useState } from 'react';
 import { generatePath, useHistory } from 'react-router-dom';
 import { GadgetBackgroundInstanceForm } from '../common/gadgetbackgroundinstanceform';
 import { generateRandomString } from '../common/helpers';
 import { useGadgetConn } from './conn';
 import GadgetFilters from './gadgetFilters';
-
-// ... (keep existing imports)
 
 const KUBERNETES_VIEWS = [
   { value: 'Pod', label: 'Pod' },
@@ -503,11 +499,7 @@ function CreateGadgetInstance({ gadgetInfo, resource, imageName, enableEmbed = f
   );
 }
 
-const GadgetGrid = ({
-  gadgets,
-  onEmbedClick,
-  resource = null,
-}) => {
+const GadgetGrid = ({ gadgets, onEmbedClick, resource = null }) => {
   if (gadgets.length === 0) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
