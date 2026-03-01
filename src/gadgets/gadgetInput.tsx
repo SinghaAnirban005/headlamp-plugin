@@ -2,17 +2,33 @@ import { Icon } from '@iconify/react';
 import { getCluster } from '@kinvolk/headlamp-plugin/lib/Utils';
 import { Box, Button, TextField } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { generateRandomString } from '../common/helpers';
+import { generateRandomString, testOCIRegex } from '../common/helpers';
 
 export function GadgetInput({ resource, onAddGadget }) {
   const [imageURL, setImageURL] = useState('');
   const history = useHistory();
   const { enqueueSnackbar } = useSnackbar();
-  const encodedImageURL = encodeURIComponent(imageURL);
 
   const handleRun = () => {
+    const trimmedURL = imageURL.trim();
+    if (!trimmedURL) {
+      enqueueSnackbar('Image URL cannot be empty', { variant: 'error' });
+      return;
+    }
+
+    const isOCIValid = testOCIRegex(trimmedURL);
+    if (!isOCIValid) {
+      enqueueSnackbar(
+        'Invalid format. Example: ghcr.io/inspektor-gadget/gadget/trace_open:latest',
+        { variant: 'error' }
+      );
+      return;
+    }
+
+    const encodedImageURL = encodeURIComponent(trimmedURL);
+
     const row: {
       id: string;
       isHeadless: boolean;
@@ -59,10 +75,9 @@ export function GadgetInput({ resource, onAddGadget }) {
 
   return (
     <Box mt={2} display="flex" alignItems="center">
-        
       <TextField
         label="Gadget Image URL"
-        placeholder='ghcr.io/inspektor-gadget/gadget/trace_open:latest'
+        placeholder="ghcr.io/inspektor-gadget/gadget/trace_open:latest"
         variant="outlined"
         size="small"
         fullWidth

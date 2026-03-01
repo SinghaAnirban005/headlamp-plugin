@@ -42,3 +42,14 @@ export function updateInstanceFromStorage(
 
   return null;
 }
+
+export function testOCIRegex(imageURL: string): boolean {
+  const ociRegex =
+    /^([a-z0-9]+(?:[._-][a-z0-9]+)*\.[a-z]{2,}(?::[0-9]+)?\/)?[a-z0-9]+(?:[._\/-][a-z0-9]+)*(?::[a-z0-9.-]+|@[a-z0-9]+:[a-f0-9]+)?$/i;
+
+  if (!ociRegex.test(imageURL)) {
+    return false;
+  }
+
+  return true;
+}

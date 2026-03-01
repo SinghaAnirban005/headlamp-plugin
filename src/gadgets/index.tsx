@@ -45,7 +45,7 @@ function GadgetRendererWithTabs() {
       <SectionBox title="Gadgets (beta)">
         <Box sx={{ width: '100%', typography: 'body1', my: 2 }}>
           <Box>
-            <Box sx={{ mb:8, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ mb: 8, display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Typography variant="caption" sx={{ fontSize: '1rem' }}>
                 Enter a gadget image URL or discover gadgets from ArtifactHub
               </Typography>
