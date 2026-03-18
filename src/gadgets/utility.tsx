@@ -5,10 +5,28 @@ import { getProperty } from './helper';
 
 export const MAX_DATA_LIMIT = 20000;
 
+export type FieldMeta = { type?: string; annotations?: Record<string, string> };
+export type ColumnMeta = Record<string, FieldMeta>;
+export type AllColumnMeta = Record<string, ColumnMeta>;
+
+/**
+ * Format a nanosecond duration into a human-readable string.
+ */
+export function formatDuration(ns: number): string {
+  if (ns < 1_000) return `${ns}ns`;
+  if (ns < 1_000_000) return `${(ns / 1_000).toFixed(2)}µs`;
+  if (ns < 1_000_000_000) return `${(ns / 1_000_000).toFixed(2)}ms`;
+  return `${(ns / 1_000_000_000).toFixed(2)}s`;
+}
+
 /**
  * Process a single column of gadget data
  */
-export const processDataColumn = (payload: any, column: string): React.ReactNode | null => {
+export const processDataColumn = (
+  payload: any,
+  column: string,
+  fieldMeta?: FieldMeta
+): React.ReactNode | null => {
   if (column === IS_METRIC || column.includes(HEADLAMP_KEY) || column.includes(HEADLAMP_VALUE)) {
     return null;
   }
@@ -33,8 +51,17 @@ export const processDataColumn = (payload: any, column: string): React.ReactNode
       ) : (
         value
       );
-    default:
-      return JSON.stringify(value).replace(/['"]+/g, '');
+    default: {
+      const raw = JSON.stringify(value).replace(/['"]+/g, '');
+      const isDuration =
+        fieldMeta?.type === 'gadget_duration_ns' ||
+        fieldMeta?.annotations?.['columns.formatter'] === 'duration';
+      if (isDuration) {
+        const ns = Number(value);
+        return isNaN(ns) ? raw : formatDuration(ns);
+      }
+      return raw;
+    }
   }
 };
 
@@ -47,14 +74,15 @@ export const processGadgetData = (
   columns: string[],
   node: string,
   setGadgetData: React.Dispatch<React.SetStateAction<Record<string, any>>>,
-  setBufferedGadgetData: React.Dispatch<React.SetStateAction<Record<string, any[]>>>
+  setBufferedGadgetData: React.Dispatch<React.SetStateAction<Record<string, any[]>>>,
+  columnMetaForDs?: ColumnMeta
 ) => {
   if (columns.length === 0) return;
 
   const massagedData: Record<string, any> = columns.includes(IS_METRIC)
     ? data
     : columns.reduce((acc, column) => {
-        const processedValue = processDataColumn(data, column);
+        const processedValue = processDataColumn(data, column, columnMetaForDs?.[column]);
         if (processedValue !== null) {
           acc[column] = processedValue;
         }
@@ -89,7 +117,8 @@ export const createGadgetCallbacks = (
   setLoading: (loading: boolean) => void,
   setGadgetData: React.Dispatch<React.SetStateAction<Record<string, any>>>,
   setBufferedGadgetData: React.Dispatch<React.SetStateAction<Record<string, any[]>>>,
-  prepareGadgetInfo?: (info: any) => void
+  prepareGadgetInfo?: (info: any) => void,
+  columnMeta?: AllColumnMeta
 ) => {
   return {
     onGadgetInfo: prepareGadgetInfo || (() => {}),
@@ -106,7 +135,8 @@ export const createGadgetCallbacks = (
           dataColumns[dsID] || [],
           node,
           setGadgetData,
-          setBufferedGadgetData
+          setBufferedGadgetData,
+          columnMeta?.[dsID]
         )
       );
     },

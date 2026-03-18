@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import usePortForward from '../../gadgets/igSocket';
-import { createGadgetCallbacks } from '../../gadgets/utility';
+import { AllColumnMeta, createGadgetCallbacks } from '../../gadgets/utility';
 
 interface GenericGadgetRendererProps {
   podsSelected: string[];
@@ -18,6 +18,7 @@ interface GenericGadgetRendererProps {
   prepareGadgetInfo: (info: any) => void;
   setPodStreamsConnected: React.Dispatch<React.SetStateAction<number>>;
   imageName: string;
+  columnMeta?: AllColumnMeta;
 }
 
 export default function GenericGadgetRenderer({
@@ -35,6 +36,7 @@ export default function GenericGadgetRenderer({
   prepareGadgetInfo,
   setPodStreamsConnected,
   imageName,
+  columnMeta,
 }: GenericGadgetRendererProps) {
   const { ig, isConnected } = usePortForward(
     `api/v1/namespaces/gadget/pods/${podSelected}/portforward?ports=8080`
@@ -55,7 +57,8 @@ export default function GenericGadgetRenderer({
       setLoading,
       setGadgetData,
       setBufferedGadgetData,
-      prepareGadgetInfo
+      prepareGadgetInfo,
+      columnMeta
     );
     if (gadgetInstance) {
       // Clear any pending attachment timeout

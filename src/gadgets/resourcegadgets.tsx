@@ -17,7 +17,7 @@ import { HEADLAMP_KEY, HEADLAMP_METRIC_UNIT, HEADLAMP_VALUE, IS_METRIC } from '.
 import { MetricChart } from '../common/MetricChart';
 import { isIGPod } from './helper';
 import usePortForward from './igSocket';
-import { processGadgetData } from './utility';
+import { AllColumnMeta, processGadgetData } from './utility';
 
 function getGadgetPodForThisResourceNode(node, pods) {
   if (!node || !pods) return null;
@@ -223,14 +223,21 @@ const RunningGadgetForActiveTab = ({ instance, resource, ig }) => {
   const dataColumnsRef = useRef(dataColumns); // Create a ref to store dataColumns
   const stopAttachmentRef = useRef(null); // Reference to store the stop function
   const [error, setError] = useState(null);
+  const [columnMeta, setColumnMeta] = useState<AllColumnMeta>({});
+  const columnMetaRef = useRef<AllColumnMeta>({});
   useEffect(() => {
     dataColumnsRef.current = dataColumns; // Update the ref whenever dataColumns changes
   }, [dataColumns]);
+  useEffect(() => {
+    columnMetaRef.current = columnMeta;
+  }, [columnMeta]);
 
   const prepareGadgetInfo = info => {
     setIsGadgetInfoFetched(true);
     const fields = {};
+    const meta: AllColumnMeta = {};
     info.dataSources.forEach((dataSource, index) => {
+      const dsID = dataSource.id || index;
       const annotations = dataSource.annotations;
       const isMetricAnnotationAvailable =
         annotations &&
@@ -238,6 +245,18 @@ const RunningGadgetForActiveTab = ({ instance, resource, ig }) => {
           annotationKey =>
             annotationKey === 'metrics.print' && annotations[annotationKey] === 'true'
         );
+
+      // Build per-field metadata map for this datasource
+      meta[dsID] = {};
+      dataSource.fields
+        .filter(field => (field.flags & 4) === 0)
+        .filter(field => field.fullName !== 'k8s')
+        .forEach(field => {
+          meta[dsID][field.fullName] = {
+            type: field.type,
+            annotations: field.annotations,
+          };
+        });
 
       if (isMetricAnnotationAvailable) {
         const fieldsFromDataSource = dataSource.fields
@@ -252,9 +271,9 @@ const RunningGadgetForActiveTab = ({ instance, resource, ig }) => {
         fieldsFromDataSource.push(`${HEADLAMP_VALUE}_${value?.fullName}`);
         fieldsFromDataSource.push(`${HEADLAMP_METRIC_UNIT}_${metricUnit}`);
         fieldsFromDataSource.push(IS_METRIC);
-        fields[dataSource.id || index] = fieldsFromDataSource;
+        fields[dsID] = fieldsFromDataSource;
       } else {
-        fields[dataSource.id || index] = dataSource.fields
+        fields[dsID] = dataSource.fields
           .filter(field => (field.flags & 4) === 0)
           .map(field => field.fullName)
           .filter(field => field !== 'k8s');
@@ -264,6 +283,8 @@ const RunningGadgetForActiveTab = ({ instance, resource, ig }) => {
     setGadgetConfig(info);
     setDataSources(info.dataSources);
     setDataColumns({ ...fields });
+    setColumnMeta(meta);
+    columnMetaRef.current = meta;
   };
 
   // Effect for gadget attachment/running
@@ -332,7 +353,8 @@ const RunningGadgetForActiveTab = ({ instance, resource, ig }) => {
                     dataColumnsRef.current[dsID] || [],
                     node,
                     setGadgetData,
-                    setBufferedGadgetData
+                    setBufferedGadgetData,
+                    columnMetaRef.current[dsID]
                   )
                 );
               },
@@ -378,7 +400,8 @@ const RunningGadgetForActiveTab = ({ instance, resource, ig }) => {
                     dataColumnsRef.current[dsID] || [],
                     node,
                     setGadgetData,
-                    setBufferedGadgetData
+                    setBufferedGadgetData,
+                    columnMetaRef.current[dsID]
                   )
                 );
               },
