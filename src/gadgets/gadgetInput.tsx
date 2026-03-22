@@ -4,7 +4,7 @@ import { Box, Button, TextField } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { generateRandomString, testOCIRegex } from '../common/helpers';
+import { generateRandomString, isValidOCIImageReference } from '../common/helpers';
 
 export function GadgetInput({ resource, onAddGadget }) {
   const [imageURL, setImageURL] = useState('');
@@ -18,7 +18,7 @@ export function GadgetInput({ resource, onAddGadget }) {
       return;
     }
 
-    const isOCIValid = testOCIRegex(trimmedURL);
+    const isOCIValid = isValidOCIImageReference(trimmedURL);
     if (!isOCIValid) {
       enqueueSnackbar(
         'Invalid format. Example: ghcr.io/inspektor-gadget/gadget/trace_open:latest',
