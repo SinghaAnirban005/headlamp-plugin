@@ -61,7 +61,7 @@ export function GadgetInput({ resource, onAddGadget }) {
     localStorage.setItem('headlamp_embeded_resources', JSON.stringify(instances));
     if (resource) {
       onAddGadget(row);
-      enqueueSnackbar(`Added gadget ${imageURL}`, {
+      enqueueSnackbar(`Added gadget ${trimmedURL}`, {
         variant: 'success',
       });
       setImageURL('');
@@ -91,7 +91,7 @@ export function GadgetInput({ resource, onAddGadget }) {
           startIcon={<Icon icon="mdi:plus" />}
           onClick={() => handleRun()}
           sx={{ ml: 2 }}
-          disabled={!imageURL}
+          disabled={!imageURL.trim()}
         >
           Add
         </Button>
