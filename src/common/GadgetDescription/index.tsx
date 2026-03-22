@@ -60,6 +60,10 @@ export function GadgetDescription({
 
   const saveEditedName = () => {
     if (!id || !editedName.trim()) return;
+    if (editedName.trim() === gadgetInstance?.name) {
+      setIsEditingName(false);
+      return;
+    }
 
     const allInstances = JSON.parse(localStorage.getItem('headlamp_embeded_resources') || '[]');
 
@@ -84,6 +88,8 @@ export function GadgetDescription({
       </Box>
     );
   }
+
+  console.log('enableHistoricalData', enableHistoricalData);
 
   return (
     <Card elevation={2} sx={{ mx: 'auto', mt: 2, mb: 2 }}>
@@ -177,6 +183,7 @@ export function GadgetDescription({
                     control={
                       <Select
                         labelId="embed-type-label"
+                        // size='small'
                         value={embedView}
                         size="small"
                         label="Embed Type"
