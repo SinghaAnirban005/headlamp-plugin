@@ -183,7 +183,6 @@ export function GadgetDescription({
                     control={
                       <Select
                         labelId="embed-type-label"
-                        // size='small'
                         value={embedView}
                         size="small"
                         label="Embed Type"
