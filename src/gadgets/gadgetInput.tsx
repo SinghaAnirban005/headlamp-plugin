@@ -4,7 +4,11 @@ import { Box, Button, TextField } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { generateRandomString, isValidOCIImageReference } from '../common/helpers';
+import {
+  generateRandomString,
+  isValidOCIImageReference,
+  isValidGadgetImageReference,
+} from '../common/helpers';
 
 export function GadgetInput({ resource, onAddGadget }) {
   const [imageURL, setImageURL] = useState('');
@@ -18,10 +22,17 @@ export function GadgetInput({ resource, onAddGadget }) {
       return;
     }
 
-    const isOCIValid = isValidOCIImageReference(trimmedURL);
-    if (!isOCIValid) {
+    if (!isValidOCIImageReference(trimmedURL)) {
       enqueueSnackbar(
-        'Invalid format. Example: ghcr.io/inspektor-gadget/gadget/trace_open:latest',
+        'Invalid OCI image reference. Example: ghcr.io/inspektor-gadget/gadget/trace_open:latest',
+        { variant: 'error' }
+      );
+      return;
+    }
+
+    if (!isValidGadgetImageReference(trimmedURL)) {
+      enqueueSnackbar(
+        'Only Inspektor Gadget OCI images are supported. Example: ghcr.io/inspektor-gadget/gadget/trace_open:latest',
         { variant: 'error' }
       );
       return;

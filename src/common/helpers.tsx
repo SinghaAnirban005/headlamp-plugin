@@ -48,9 +48,9 @@ export function isValidOCIImageReference(imageURL: string): boolean {
   const ociImageReferenceRegex =
     /^(?:[a-z0-9.-]+(?::[0-9]+)?\/)[a-z0-9]+(?:[._/-][a-z0-9]+)*(?::[a-z0-9._-]+)?$/;
 
-  if (!ociImageReferenceRegex.test(trimmed)) {
-    return false;
-  }
+  return ociImageReferenceRegex.test(trimmed);
+}
 
-  return trimmed.includes('/gadget/');
+export function isValidGadgetImageReference(imageURL: string): boolean {
+  return imageURL.includes('/gadget/');
 }
