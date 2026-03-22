@@ -44,8 +44,13 @@ export function updateInstanceFromStorage(
 }
 
 export function isValidOCIImageReference(imageURL: string): boolean {
+  const trimmed = imageURL.trim();
   const ociImageReferenceRegex =
-    /^([a-z0-9]+(?:[._-][a-z0-9]+)*\.[a-z]{2,}(?::[0-9]+)?\/)?[a-z0-9]+(?:[._\/-][a-z0-9]+)*(?::[a-z0-9.-]+|@[a-z0-9]+:[a-f0-9]+)?$/i;
+    /^(?:[a-z0-9.-]+(?::[0-9]+)?\/)[a-z0-9]+(?:[._/-][a-z0-9]+)*(?::[a-z0-9._-]+)?$/;
 
-  return ociImageReferenceRegex.test(imageURL);
+  if (!ociImageReferenceRegex.test(trimmed)) {
+    return false;
+  }
+
+  return trimmed.includes('/gadget/');
 }
