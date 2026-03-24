@@ -17,7 +17,7 @@ import { HEADLAMP_KEY, HEADLAMP_METRIC_UNIT, HEADLAMP_VALUE, IS_METRIC } from '.
 import { MetricChart } from '../common/MetricChart';
 import { isIGPod } from './helper';
 import usePortForward from './igSocket';
-import { AllColumnMeta, processGadgetData } from './utility';
+import { AllColumnMeta, processGadgetData, getSortedColumns } from './utility';
 
 function getGadgetPodForThisResourceNode(node, pods) {
   if (!node || !pods) return null;
@@ -273,10 +273,11 @@ const RunningGadgetForActiveTab = ({ instance, resource, ig }) => {
         fieldsFromDataSource.push(IS_METRIC);
         fields[dsID] = fieldsFromDataSource;
       } else {
-        fields[dsID] = dataSource.fields
+        const extractedFields = dataSource.fields
           .filter(field => (field.flags & 4) === 0)
           .map(field => field.fullName)
           .filter(field => field !== 'k8s');
+        fields[dsID] = getSortedColumns(extractedFields, dataSource.annotations);
       }
     });
 
