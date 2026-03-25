@@ -304,7 +304,7 @@ const GadgetCard = ({ gadget, onEmbedClick, resource = null }) => {
                           generateRandomString(),
                         gadgetConfig: {
                           imageName: gadget.display_name?.split(' ').join('_'),
-                          version: 1,
+                          version: gadget.version,
                           paramValues: {},
                         },
                         description: gadget.description,
@@ -503,11 +503,7 @@ function CreateGadgetInstance({ gadgetInfo, resource, imageName, enableEmbed = f
   );
 }
 
-const GadgetGrid = ({
-  gadgets,
-  onEmbedClick,
-  resource = null,
-}) => {
+const GadgetGrid = ({ gadgets, onEmbedClick, resource = null }) => {
   if (gadgets.length === 0) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
