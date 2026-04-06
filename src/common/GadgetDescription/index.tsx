@@ -85,7 +85,6 @@ export function GadgetDescription({
     );
   }
 
-  console.log('enableHistoricalData', enableHistoricalData);
   return (
     <Card elevation={2} sx={{ mx: 'auto', mt: 2, mb: 2 }}>
       <CardHeader
